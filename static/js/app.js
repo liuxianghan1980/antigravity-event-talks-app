@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const timeFilterSelect = document.getElementById('time-filter');
     const refreshBtn = document.getElementById('refresh-btn');
     const exportCsvBtn = document.getElementById('export-csv-btn');
+    const themeToggleBtn = document.getElementById('theme-toggle-btn');
     const cacheTimeEl = document.getElementById('cache-time');
     const resultsCountEl = document.getElementById('results-count');
     const toast = document.getElementById('toast');
@@ -26,6 +27,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const statBreaking = document.getElementById('stat-breaking');
     const statChanges = document.getElementById('stat-changes');
     const statCards = document.querySelectorAll('.stat-card');
+
+    // Initialize theme preference from localStorage
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-theme');
+        themeToggleBtn.querySelector('i').className = 'fa-solid fa-moon';
+    }
 
     // Initialize Application
     fetchReleases();
@@ -98,6 +106,14 @@ document.addEventListener('DOMContentLoaded', () => {
         // Export to CSV Button
         exportCsvBtn.addEventListener('click', () => {
             exportToCSV(filteredReleases);
+        });
+
+        // Theme Toggle Button
+        themeToggleBtn.addEventListener('click', () => {
+            document.body.classList.toggle('light-theme');
+            const isLight = document.body.classList.contains('light-theme');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            themeToggleBtn.querySelector('i').className = isLight ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
         });
     }
 
