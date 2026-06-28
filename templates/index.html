@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BigQuery Release Notes Explorer</title>
+    <!-- Google Fonts: Outfit & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" type="image/png" href="https://www.gstatic.com/images/branding/product/1x/bigquery_64dp.png">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <img src="https://www.gstatic.com/images/branding/product/1x/bigquery_64dp.png" alt="BigQuery Logo" class="logo-img">
+                    <div class="logo-text">
+                        <h1>BigQuery</h1>
+                        <span>Release Explorer</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Dashboard Widget -->
+            <div class="stats-container">
+                <h3><i class="fa-solid fa-chart-simple"></i> Quick Stats</h3>
+                <div class="stats-grid">
+                    <div class="stat-card" data-type="all">
+                        <span class="stat-num" id="stat-total">0</span>
+                        <span class="stat-label">Total Notes</span>
+                    </div>
+                    <div class="stat-card" data-type="feature">
+                        <span class="stat-num text-feature" id="stat-features">0</span>
+                        <span class="stat-label">Features</span>
+                    </div>
+                    <div class="stat-card" data-type="breaking">
+                        <span class="stat-num text-breaking" id="stat-breaking">0</span>
+                        <span class="stat-label">Breaking / Issues</span>
+                    </div>
+                    <div class="stat-card" data-type="change">
+                        <span class="stat-num text-change" id="stat-changes">0</span>
+                        <span class="stat-label">Changes</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters Section -->
+            <div class="filters-container">
+                <h3><i class="fa-solid fa-sliders"></i> Filters</h3>
+                
+                <!-- Search -->
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input type="text" id="search-input" placeholder="Search keywords..." autocomplete="off">
+                    <button id="clear-search" class="clear-btn" style="display: none;">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- Type Filters -->
+                <div class="filter-group">
+                    <label>Filter by Type</label>
+                    <div class="type-buttons">
+                        <button class="filter-btn active" data-type="all">
+                            <span class="bullet bullet-all"></span> All
+                        </button>
+                        <button class="filter-btn" data-type="Feature">
+                            <span class="bullet bullet-feature"></span> Features
+                        </button>
+                        <button class="filter-btn" data-type="Change">
+                            <span class="bullet bullet-change"></span> Changes
+                        </button>
+                        <button class="filter-btn" data-type="Announcement">
+                            <span class="bullet bullet-announcement"></span> Announcements
+                        </button>
+                        <button class="filter-btn" data-type="Breaking">
+                            <span class="bullet bullet-breaking"></span> Breaking
+                        </button>
+                        <button class="filter-btn" data-type="Issue">
+                            <span class="bullet bullet-issue"></span> Issues
+                        </button>
+                        <button class="filter-btn" data-type="General">
+                            <span class="bullet bullet-general"></span> General
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Date Range Filter Group -->
+                <div class="filter-group">
+                    <label>Time Period</label>
+                    <select id="time-filter" class="custom-select">
+                        <option value="all">All Time</option>
+                        <option value="30">Last 30 Days</option>
+                        <option value="90">Last 90 Days</option>
+                        <option value="180">Last 6 Months</option>
+                        <option value="365">Last Year</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Footer / Cache info -->
+            <div class="sidebar-footer">
+                <div class="cache-status">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <div>
+                        <div class="cache-title">Cache Status</div>
+                        <div id="cache-time" class="cache-time">Updating...</div>
+                    </div>
+                </div>
+                <button id="refresh-btn" class="refresh-action-btn">
+                    <i class="fa-solid fa-arrows-rotate"></i> Force Refresh
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="header-info">
+                    <h2>Release Feed</h2>
+                    <p id="results-count">Showing all release notes</p>
+                </div>
+                <div class="header-actions">
+                    <a href="https://docs.cloud.google.com/feeds/bigquery-release-notes.xml" target="_blank" class="external-feed-link" title="Raw RSS Feed">
+                        <i class="fa-solid fa-rss"></i> Raw Atom Feed
+                    </a>
+                </div>
+            </header>
+
+            <!-- Cards Container -->
+            <div class="feed-container" id="feed-container">
+                <!-- Skeleton loader shown by default -->
+                <div class="skeleton-card">
+                    <div class="skeleton-header">
+                        <div class="skeleton-badge"></div>
+                        <div class="skeleton-date"></div>
+                    </div>
+                    <div class="skeleton-body">
+                        <div class="skeleton-line short"></div>
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line medium"></div>
+                    </div>
+                </div>
+                <div class="skeleton-card">
+                    <div class="skeleton-header">
+                        <div class="skeleton-badge"></div>
+                        <div class="skeleton-date"></div>
+                    </div>
+                    <div class="skeleton-body">
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line short"></div>
+                        <div class="skeleton-line"></div>
+                    </div>
+                </div>
+                <div class="skeleton-card">
+                    <div class="skeleton-header">
+                        <div class="skeleton-badge"></div>
+                        <div class="skeleton-date"></div>
+                    </div>
+                    <div class="skeleton-body">
+                        <div class="skeleton-line medium"></div>
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line short"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast">
+        <i class="fa-solid fa-circle-check toast-icon"></i>
+        <span id="toast-message">Message copied to clipboard</span>
+    </div>
+
+    <!-- JS Files -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
