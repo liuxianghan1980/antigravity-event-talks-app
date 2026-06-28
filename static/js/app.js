@@ -3,6 +3,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     // State Variables
     let allReleases = [];
+    let filteredReleases = [];
     let currentFilterType = 'all';
     let currentSearchQuery = '';
     let currentTimeFilter = 'all';
@@ -13,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearSearchBtn = document.getElementById('clear-search');
     const timeFilterSelect = document.getElementById('time-filter');
     const refreshBtn = document.getElementById('refresh-btn');
+    const exportCsvBtn = document.getElementById('export-csv-btn');
     const cacheTimeEl = document.getElementById('cache-time');
     const resultsCountEl = document.getElementById('results-count');
     const toast = document.getElementById('toast');
@@ -91,6 +93,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Force Refresh Button
         refreshBtn.addEventListener('click', () => {
             fetchReleases(true);
+        });
+
+        // Export to CSV Button
+        exportCsvBtn.addEventListener('click', () => {
+            exportToCSV(filteredReleases);
         });
     }
 
@@ -212,6 +219,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Update Results Count label
         updateCountLabel(filtered.length);
+
+        // Save active list for CSV export
+        filteredReleases = filtered;
 
         // Render Results
         renderFeed(filtered);
@@ -427,5 +437,50 @@ document.addEventListener('DOMContentLoaded', () => {
                 </button>
             </div>
         `;
+    }
+
+    // Export to CSV Utility
+    function exportToCSV(releases) {
+        if (releases.length === 0) {
+            showToast("No release notes to export.");
+            return;
+        }
+
+        // CSV Headers
+        const headers = ["ID", "Date", "Updated ISO", "Type", "Link", "Content"];
+        
+        // Convert release items to CSV rows
+        const rows = releases.map(item => [
+            item.id,
+            item.date,
+            item.updated,
+            item.type,
+            item.link,
+            // Strip HTML and escape quotes for content
+            item.content.stripHtml().replace(/"/g, '""').trim()
+        ]);
+
+        // Construct CSV String with proper line endings and double-quotes
+        const csvContent = [
+            headers.join(","),
+            ...rows.map(r => r.map(val => `"${val}"`).join(","))
+        ].join("\n");
+
+        // Create file download in browser
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        
+        // Generate dynamic file name with current context and timestamp
+        const dateStr = new Date().toISOString().slice(0, 10);
+        const typeStr = currentFilterType.toLowerCase();
+        link.setAttribute("download", `bigquery_releases_${typeStr}_${dateStr}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showToast(`Successfully exported ${releases.length} rows to CSV!`);
     }
 });
